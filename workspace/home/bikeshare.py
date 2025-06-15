@@ -231,8 +231,12 @@ def analyze_users(df):
 
     start_time = time.time()
 
+    # Add total unique users count
+    unique_users = df['User Type'].nunique()
+    print(f"👥 Total unique user types: {unique_users}")
+
     user_types = df["User Type"].value_counts()
-    print("👤 User type distribution:")
+    print("\n👤 User type distribution:")
     for user_type, count in user_types.items():
         percentage = (count / len(df)) * 100
         print(f"  • {user_type}: {format_number(count)} users ({percentage:.1f}%)")
