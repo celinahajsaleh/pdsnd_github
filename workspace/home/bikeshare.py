@@ -35,6 +35,10 @@ def print_colored(text, color=Fore.WHITE):
     """Print colored text to console."""
     print(f"{color}{text}{Style.RESET_ALL}")
 
+def format_number(number):
+    """Format large numbers with commas for better readability."""
+    return f"{number:,}"
+
 def get_user_preferences():
     """
     Collects user preferences for city, month, and day analysis.
@@ -44,6 +48,7 @@ def get_user_preferences():
     """
     print_separator()
     print('🚲 Welcome to the BikeShare Data Explorer! 🚲')
+    print('📊 Explore bike share data from Chicago, New York City, and Washington')
     print_separator()
 
     # Get city selection
@@ -133,104 +138,134 @@ def process_data(city, month, day):
 def analyze_time_patterns(df, month, day):
     """Analyzes and displays time-based patterns in the data."""
 
-    print('\n=== Time Analysis ===\n')
-    start_time = time.time()
+    print_separator()
+    print('⏰ Time Analysis')
+    print_separator()
 
+    start_time = time.time()
     months = ['january', 'february', 'march', 'april', 'may', 'june']
 
     if month == 'all':
         popular_month = df['month'].mode()[0]
-        print(f"Most popular month: {months[popular_month - 1].title()}")
+        month_count = df[df['month'] == popular_month].shape[0]
+        print(f"📅 Most popular month: {months[popular_month - 1].title()}")
+        print(f"   • Total trips: {format_number(month_count)}")
 
     if day == 'all':
         popular_day = df['day'].mode()[0]
-        print(f"Most popular day: {popular_day}")
+        day_count = df[df['day'] == popular_day].shape[0]
+        print(f"📆 Most popular day: {popular_day}")
+        print(f"   • Total trips: {format_number(day_count)}")
 
     df['hour'] = df['Start Time'].dt.hour
     popular_hour = df['hour'].mode()[0]
-    print(f"Most popular hour: {popular_hour}:00")
+    hour_count = df[df['hour'] == popular_hour].shape[0]
+    print(f"🕒 Most popular hour: {popular_hour}:00")
+    print(f"   • Total trips: {format_number(hour_count)}")
 
-    print(f"\nAnalysis completed in {time.time() - start_time:.2f} seconds")
-    print('-' * 40)
+    print(f"\n⏱️ Analysis completed in {time.time() - start_time:.2f} seconds")
+    print_separator()
 
 
 def analyze_stations(df):
     """Analyzes and displays station-related statistics."""
 
-    print('\n=== Station Analysis ===\n')
+    print_separator()
+    print('🚉 Station Analysis')
+    print_separator()
+
     start_time = time.time()
 
     popular_start = df["Start Station"].mode()[0]
-    popular_end = df["End Station"].mode()[0]
+    start_count = df[df["Start Station"] == popular_start].shape[0]
+    print(f"📍 Most popular starting station: {popular_start}")
+    print(f"   • Total trips: {format_number(start_count)}")
 
-    print(f"Most popular starting station: {popular_start}")
-    print(f"Most popular ending station: {popular_end}")
+    popular_end = df["End Station"].mode()[0]
+    end_count = df[df["End Station"] == popular_end].shape[0]
+    print(f"🏁 Most popular ending station: {popular_end}")
+    print(f"   • Total trips: {format_number(end_count)}")
 
     df["Route"] = df["Start Station"] + " → " + df["End Station"]
     popular_route = df["Route"].mode()[0]
-    print(f"Most popular route: {popular_route}")
+    route_count = df[df["Route"] == popular_route].shape[0]
+    print(f"🛣️ Most popular route: {popular_route}")
+    print(f"   • Total trips: {format_number(route_count)}")
 
-    print(f"\nAnalysis completed in {time.time() - start_time:.2f} seconds")
-    print('-' * 40)
+    print(f"\n⏱️ Analysis completed in {time.time() - start_time:.2f} seconds")
+    print_separator()
 
 
 def analyze_trip_duration(df):
     """Analyzes and displays trip duration statistics."""
 
-    print('\n=== Trip Duration Analysis ===\n')
+    print_separator()
+    print('⏱️ Trip Duration Analysis')
+    print_separator()
+
     start_time = time.time()
 
     total_duration = df["Trip Duration"].sum()
     avg_duration = df["Trip Duration"].mean()
+    median_duration = df["Trip Duration"].median()
 
-    # Convert to more readable format
     total_hours = total_duration // 3600
     total_minutes = (total_duration % 3600) // 60
     avg_minutes = avg_duration // 60
+    median_minutes = median_duration // 60
 
-    print(f"Total travel time: {total_hours} hours and {total_minutes} minutes")
-    print(f"Average trip duration: {avg_minutes:.1f} minutes")
+    print(f"⏳ Total travel time: {total_hours:,} hours and {total_minutes:,} minutes")
+    print(f"📊 Average trip duration: {avg_minutes:.1f} minutes")
+    print(f"📈 Median trip duration: {median_minutes:.1f} minutes")
 
-    print(f"\nAnalysis completed in {time.time() - start_time:.2f} seconds")
-    print('-' * 40)
+    print(f"\n⏱️ Analysis completed in {time.time() - start_time:.2f} seconds")
+    print_separator()
 
 
 def analyze_users(df):
     """Analyzes and displays user-related statistics."""
 
-    print('\n=== User Analysis ===\n')
+    print_separator()
+    print('👥 User Analysis')
+    print_separator()
+
     start_time = time.time()
 
-    # User type analysis
-    user_types = df["User Type"].value_counts()
-    print("User type distribution:")
-    for user_type, count in user_types.items():
-        print(f"- {user_type}: {count:,} users")
+    # Add total unique users count
+    unique_users = df['User Type'].nunique()
+    print(f"👥 Total unique user types: {unique_users}")
 
-    # Gender analysis (if available)
+    user_types = df["User Type"].value_counts()
+    print("\n👤 User type distribution:")
+    for user_type, count in user_types.items():
+        percentage = (count / len(df)) * 100
+        print(f"  • {user_type}: {format_number(count)} users ({percentage:.1f}%)")
+
     if 'Gender' in df.columns:
         gender_stats = df['Gender'].value_counts()
-        print("\nGender distribution:")
+        print("\n👥 Gender distribution:")
         for gender, count in gender_stats.items():
-            print(f"- {gender}: {count:,} users")
+            percentage = (count / len(df)) * 100
+            print(f"  • {gender}: {format_number(count)} users ({percentage:.1f}%)")
     else:
-        print("\nGender data not available for this city")
+        print("\nℹ️ Gender data not available for this city")
 
-    # Birth year analysis (if available)
     if 'Birth Year' in df.columns:
         earliest = int(df['Birth Year'].min())
         latest = int(df['Birth Year'].max())
         common = int(df['Birth Year'].mode()[0])
+        avg_age = datetime.now().year - df['Birth Year'].mean()
 
-        print("\nBirth year statistics:")
-        print(f"- Earliest birth year: {earliest}")
-        print(f"- Most recent birth year: {latest}")
-        print(f"- Most common birth year: {common}")
+        print("\n🎂 Birth year statistics:")
+        print(f"  • Earliest birth year: {earliest}")
+        print(f"  • Most recent birth year: {latest}")
+        print(f"  • Most common birth year: {common}")
+        print(f"  • Average user age: {avg_age:.1f} years")
     else:
-        print("\nBirth year data not available for this city")
+        print("\nℹ️ Birth year data not available for this city")
 
-    print(f"\nAnalysis completed in {time.time() - start_time:.2f} seconds")
-    print('-' * 40)
+    print(f"\n⏱️ Analysis completed in {time.time() - start_time:.2f} seconds")
+    print_separator()
 
 
 def show_raw_data(city):
